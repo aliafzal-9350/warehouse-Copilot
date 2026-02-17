@@ -165,23 +165,8 @@ def interpret_message(payload: dict):
                 "• \"check inventory\" — inventory dekhein"
             )
         else:
-            # Try with normalized message as second pass
-            normalized_msg = normalize_message(message)
-            if normalized_msg != message:
-                # Re-try NLP with normalized message
-                retry_data = extract_intent_and_slots(normalized_msg)
-                retry_intent = retry_data.get("intent", "unknown")
-                if retry_intent != "unknown":
-                    # Use the retry result
-                    intent = retry_intent
-                    slots = retry_data.get("slots", {})
-                    missing = retry_data.get("missing", [])
-                    action_data = _status_message(intent, slots, missing)
-                    _store_pending_delete(intent, slots, missing, session_id)
-                else:
-                    response = action_data.get("status")
-            else:
-                response = action_data.get("status")
+            # Generate a generic help message
+            response = action_data.get("status")
 
     return {
         "intent": intent,

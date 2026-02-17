@@ -82,6 +82,15 @@ def _fuzzy_match_keyword(word: str, keywords: list[str], max_distance: int = 2) 
     return best_match
 
 
+def _fuzzy_match_single(word: str, keyword: str, max_distance: int = 2) -> bool:
+    """
+    Check if a word fuzzy matches a single keyword within max_distance.
+    Optimized for single keyword checks to avoid list allocation.
+    """
+    distance = _levenshtein_distance(word.lower(), keyword.lower())
+    return distance <= max_distance
+
+
 def normalize_message(message: str) -> str:
     """
     Pre-process user message to correct common spelling mistakes.
@@ -98,7 +107,7 @@ def normalize_message(message: str) -> str:
             # Preserve original punctuation
             corrected = _SPELL_CORRECTIONS[clean_word]
             # Apply same case pattern
-            if len(word) > 0 and word[0].isupper() and len(word) > 1:
+            if len(word) > 1 and word[0].isupper():
                 corrected = corrected.capitalize()
             # Re-add trailing punctuation
             for char in ".,!?;:":
@@ -234,7 +243,7 @@ def _detect_intent(text: str, quantity: int | None, query: str | None) -> str:
         for word in words:
             for keyword in keywords:
                 # Only fuzzy match single-word keywords
-                if ' ' not in keyword and _fuzzy_match_keyword(word, [keyword], max_distance=2):
+                if ' ' not in keyword and _fuzzy_match_single(word, keyword, max_distance=2):
                     return True
         return False
     
