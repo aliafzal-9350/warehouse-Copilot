@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, initial-scale=1.0"/>
+  <meta name="description" content="Warehouse Copilot - AI-powered warehouse management and inventory tracking system" />
+  <title>Warehouse Copilot - Enterprise Logistics Engine</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="./logo.png" alt="Warehouse Copilot Logo" class="logo">
+        <div>
+          <h1>WAREHOUSE COPILOT</h1>
+          <p class="subtitle">AI-Powered Warehouse Copilot Assistant</p>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="chip" data-action="receive">RECEIVE STOCK</button>
+        <button class="chip" data-action="inventory">CHECK INVENTORY</button>
+        <button class="chip" data-action="reports">REPORTS</button>
+      </div>
+
+      <div class="info">
+        <p>AI-powered warehouse assistant with voice command support. Use natural language commands for stock management.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="chat-panel" id="chat-log"></div>
+
+      <div class="input-panel">
+        <button id="micBtn" class="mic-btn" title="Voice Command">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </button>
+        <input id="userInput" type="text" placeholder="Instruct the Copilot (e.g., 'Show stock levels')..." />
+        <button id="sendBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <div id="voiceStatus" class="voice-status">Voice: Ready</div>
+    </main>
+  </div>
+
+  <!-- Receiving Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal modal-wide">
+      <h2>Stock Receiving Form</h2>
+
+      <div class="section-title">Header Information</div>
+      <div class="form-grid">
+        <div>
+          <label>Customer</label>
+          <input type="text" id="customer" placeholder="ABC Trading Co." />
+        </div>
+        <div>
+          <label>Warehouse</label>
+          <input type="text" id="warehouse" placeholder="WH1" />
+        </div>
+        <div>
+          <label>Receiving Date</label>
+          <input type="date" id="receiving_date" />
+        </div>
+        <div>
+          <label>Reference No</label>
+          <input type="text" id="reference_no" placeholder="PO-12345" />
+        </div>
+      </div>
+
+      <div class="section-title">Line Items</div>
+      <div class="line-items">
+        <table class="line-table">
+          <thead>
+            <tr>
+              <th>Item Code</th>
+              <th>Location</th>
+              <th>Batch No</th>
+              <th>MFG Date</th>
+              <th>Expiry Date</th>
+              <th>Shelf Expiry Date</th>
+              <th>Quantity</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lineItemsBody"></tbody>
+        </table>
+        <button id="addLineBtn" class="btn ghost add-row">+ Add Item</button>
+      </div>
+
+      <div class="modal-actions">
+        <button id="closeModal" class="btn ghost">Cancel</button>
+        <button id="confirmBtn" class="btn primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
