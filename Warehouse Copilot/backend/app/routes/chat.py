@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.services.gemini import extract_intent_and_slots, generate_chat_response
+from app.services.gemini import extract_intent_and_slots, generate_chat_response, normalize_message
 from app.services.whisper_ai import transcribe_audio_bytes
 
 router = APIRouter()
@@ -140,12 +140,18 @@ def interpret_message(payload: dict):
     response = None
     if intent == "unknown":
         text_low = message.lower()
-        if any(w in text_low for w in ("hi", "hello", "hey", "assalam", "salam")):
+        # Extended greeting patterns
+        greetings = ("hi", "hello", "hey", "assalam", "salam", "good morning", 
+                    "good afternoon", "good evening", "greetings", "hola", "namaste")
+        help_keywords = ("help", "commands", "kya kar sakte", "how to", "what can",
+                        "guide", "instructions", "madad")
+        
+        if any(w in text_low for w in greetings):
             response = (
                 "Assalam-o-alaikum! Main aapka Warehouse Assistant hoon.\n"
                 "Stock receive, edit, delete, search — sab yahan se control karein."
             )
-        elif any(w in text_low for w in ("help", "commands", "kya kar sakte")):
+        elif any(w in text_low for w in help_keywords):
             response = (
                 "Aap yeh commands try karein:\n"
                 "• \"receive stock\" — naya stock receive karein\n"
@@ -155,7 +161,31 @@ def interpret_message(payload: dict):
                 "• \"check inventory\" — inventory dekhein"
             )
         else:
-            response = action_data.get("status")
+            # Try with normalized message as second pass
+            normalized_msg = normalize_message(message)
+            if normalized_msg != message:
+                # Re-try NLP with normalized message
+                retry_data = extract_intent_and_slots(normalized_msg)
+                retry_intent = retry_data.get("intent", "unknown")
+                if retry_intent != "unknown":
+                    # Use the retry result
+                    intent = retry_intent
+                    slots = retry_data.get("slots", {})
+                    missing = retry_data.get("missing", [])
+                    action_data = _status_message(intent, slots, missing)
+                    if intent == "delete_line" and not missing:
+                        query = (
+                            slots.get("query")
+                            or slots.get("reference_no")
+                            or slots.get("customer")
+                            or slots.get("batch_no")
+                        )
+                        if query:
+                            _pending_deletes[session_id] = query
+                else:
+                    response = action_data.get("status")
+            else:
+                response = action_data.get("status")
 
     return {
         "intent": intent,
