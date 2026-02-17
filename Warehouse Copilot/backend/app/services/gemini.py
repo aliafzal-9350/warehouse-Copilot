@@ -98,7 +98,7 @@ def normalize_message(message: str) -> str:
             # Preserve original punctuation
             corrected = _SPELL_CORRECTIONS[clean_word]
             # Apply same case pattern
-            if word[0].isupper() and len(word) > 1:
+            if len(word) > 0 and word[0].isupper() and len(word) > 1:
                 corrected = corrected.capitalize()
             # Re-add trailing punctuation
             for char in ".,!?;:":

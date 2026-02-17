@@ -8,18 +8,30 @@ router = APIRouter()
 _pending_deletes: dict[str, str] = {}
 
 
+def _extract_query_from_slots(slots: dict) -> str | None:
+    """Extract query from slots, checking multiple possible fields."""
+    return (
+        slots.get("query")
+        or slots.get("reference_no")
+        or slots.get("customer")
+        or slots.get("batch_no")
+    )
+
+
+def _store_pending_delete(intent: str, slots: dict, missing: list, session_id: str) -> None:
+    """Store pending delete confirmation if applicable."""
+    if intent == "delete_line" and not missing:
+        query = _extract_query_from_slots(slots)
+        if query:
+            _pending_deletes[session_id] = query
+
+
 def _status_message(intent: str, slots: dict, missing: list) -> dict:
     """
     Build a structured response with action type and dynamic status message.
     The frontend uses 'action' to decide what UI to show.
     """
-    query = (
-        slots.get("query")
-        or slots.get("reference_no")
-        or slots.get("customer")
-        or slots.get("batch_no")
-        or slots.get("item_code")
-    )
+    query = _extract_query_from_slots(slots) or slots.get("item_code")
     quantity = slots.get("quantity")
 
     # ── Missing required info — ask user ──
@@ -126,15 +138,7 @@ def interpret_message(payload: dict):
     action_data = _status_message(intent, slots, missing)
 
     # ── Store pending delete for confirmation flow ──
-    if intent == "delete_line" and not missing:
-        query = (
-            slots.get("query")
-            or slots.get("reference_no")
-            or slots.get("customer")
-            or slots.get("batch_no")
-        )
-        if query:
-            _pending_deletes[session_id] = query
+    _store_pending_delete(intent, slots, missing, session_id)
 
     # ── Fallback chat for unknown intent ──
     response = None
@@ -173,15 +177,7 @@ def interpret_message(payload: dict):
                     slots = retry_data.get("slots", {})
                     missing = retry_data.get("missing", [])
                     action_data = _status_message(intent, slots, missing)
-                    if intent == "delete_line" and not missing:
-                        query = (
-                            slots.get("query")
-                            or slots.get("reference_no")
-                            or slots.get("customer")
-                            or slots.get("batch_no")
-                        )
-                        if query:
-                            _pending_deletes[session_id] = query
+                    _store_pending_delete(intent, slots, missing, session_id)
                 else:
                     response = action_data.get("status")
             else:
