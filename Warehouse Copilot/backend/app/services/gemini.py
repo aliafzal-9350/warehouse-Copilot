@@ -244,10 +244,11 @@ def _detect_intent(text: str, quantity: int | None, query: str | None) -> str:
         return "adjust_quantity"
     if has_keyword_match(_EDIT_KW) and query:
         return "open_record"
-    if has_keyword_match(_RECEIVE_KW):
-        return "receive_stock"
+    # Check inventory before receive_stock (more specific)
     if has_keyword_match(["inventory", "stock level", "stock status", "maloom karo"]):
         return "check_inventory"
+    if has_keyword_match(_RECEIVE_KW):
+        return "receive_stock"
     if has_keyword_match(["report", "summary"]):
         return "report"
     return "unknown"
