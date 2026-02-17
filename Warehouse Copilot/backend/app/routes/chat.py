@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.services.gemini import extract_intent_and_slots, generate_chat_response
+from app.services.gemini import extract_intent_and_slots, generate_chat_response, normalize_message
 from app.services.whisper_ai import transcribe_audio_bytes
 
 router = APIRouter()
@@ -8,18 +8,30 @@ router = APIRouter()
 _pending_deletes: dict[str, str] = {}
 
 
+def _extract_query_from_slots(slots: dict) -> str | None:
+    """Extract query from slots, checking multiple possible fields."""
+    return (
+        slots.get("query")
+        or slots.get("reference_no")
+        or slots.get("customer")
+        or slots.get("batch_no")
+    )
+
+
+def _store_pending_delete(intent: str, slots: dict, missing: list, session_id: str) -> None:
+    """Store pending delete confirmation if applicable."""
+    if intent == "delete_line" and not missing:
+        query = _extract_query_from_slots(slots)
+        if query:
+            _pending_deletes[session_id] = query
+
+
 def _status_message(intent: str, slots: dict, missing: list) -> dict:
     """
     Build a structured response with action type and dynamic status message.
     The frontend uses 'action' to decide what UI to show.
     """
-    query = (
-        slots.get("query")
-        or slots.get("reference_no")
-        or slots.get("customer")
-        or slots.get("batch_no")
-        or slots.get("item_code")
-    )
+    query = _extract_query_from_slots(slots) or slots.get("item_code")
     quantity = slots.get("quantity")
 
     # ── Missing required info — ask user ──
@@ -126,26 +138,24 @@ def interpret_message(payload: dict):
     action_data = _status_message(intent, slots, missing)
 
     # ── Store pending delete for confirmation flow ──
-    if intent == "delete_line" and not missing:
-        query = (
-            slots.get("query")
-            or slots.get("reference_no")
-            or slots.get("customer")
-            or slots.get("batch_no")
-        )
-        if query:
-            _pending_deletes[session_id] = query
+    _store_pending_delete(intent, slots, missing, session_id)
 
     # ── Fallback chat for unknown intent ──
     response = None
     if intent == "unknown":
         text_low = message.lower()
-        if any(w in text_low for w in ("hi", "hello", "hey", "assalam", "salam")):
+        # Extended greeting patterns
+        greetings = ("hi", "hello", "hey", "assalam", "salam", "good morning", 
+                    "good afternoon", "good evening", "greetings", "hola", "namaste")
+        help_keywords = ("help", "commands", "kya kar sakte", "how to", "what can",
+                        "guide", "instructions", "madad")
+        
+        if any(w in text_low for w in greetings):
             response = (
                 "Assalam-o-alaikum! Main aapka Warehouse Assistant hoon.\n"
                 "Stock receive, edit, delete, search — sab yahan se control karein."
             )
-        elif any(w in text_low for w in ("help", "commands", "kya kar sakte")):
+        elif any(w in text_low for w in help_keywords):
             response = (
                 "Aap yeh commands try karein:\n"
                 "• \"receive stock\" — naya stock receive karein\n"
@@ -155,6 +165,7 @@ def interpret_message(payload: dict):
                 "• \"check inventory\" — inventory dekhein"
             )
         else:
+            # Generate a generic help message
             response = action_data.get("status")
 
     return {

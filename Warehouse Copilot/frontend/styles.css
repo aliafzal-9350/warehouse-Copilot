@@ -217,6 +217,25 @@ body::after {
   color: #fecaca;
 }
 
+.msg.user {
+  background: linear-gradient(135deg, var(--cosmic-purple), var(--purple-glow));
+  color: #fff;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.msg.success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #a7f3d0;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.msg.warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
 /* Inventory Card */
 .msg.card {
   max-width: 100%;
@@ -694,4 +713,34 @@ tr.editing .inline-input:focus {
 .inline-input {
   padding: 6px 8px;
   font-size: 11px;
+}
+
+/* Typing Indicator Animation */
+.typing-indicator {
+  display: flex;
+  gap: 6px;
+  padding: 12px 18px !important;
+}
+
+.typing-indicator .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan-glow);
+  animation: typingBounce 0.6s infinite alternate;
+}
+
+.typing-indicator .dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-indicator .dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typingBounce {
+  to {
+    transform: translateY(-6px);
+    opacity: 0.4;
+  }
 }
