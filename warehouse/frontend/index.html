@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, initial-scale=1.0" />
+  <meta name="description"
+    content="Warehouse Copilot - AI-powered warehouse management and inventory tracking system" />
+  <title>Warehouse Copilot - Enterprise Logistics Engine</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+  <div class="app">
+    <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="./logo.png" alt="Warehouse Copilot Logo" class="logo">
+        <div>
+          <h1>WAREHOUSE COPILOT</h1>
+          <p class="subtitle">AI-Powered Warehouse Copilot Assistant</p>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="chip" data-action="receive">📥 RECEIVE STOCK</button>
+        <button class="chip" data-action="inventory">📦 CHECK INVENTORY</button>
+        <button class="chip" data-action="reports">📊 REPORTS</button>
+      </div>
+
+      <div class="info">
+        <!-- The initial welcome message was historically here, but now it's injected dynamically by app.js -->
+      </div>
+    </aside>
+
+    <!-- ═══ CHAT PANEL ════════════════════════════════════════════════════ -->
+    <main class="main">
+      <div class="chat-panel" id="chat-log"></div>
+
+      <div class="input-panel">
+        <button id="micBtn" class="mic-btn" title="Voice Command">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </button>
+        <input id="userInput" type="text"
+          placeholder="Type a command (e.g. 'I want to receive stock', 'check inventory')..." />
+        <button id="sendBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <div id="voiceStatus" class="voice-status">Voice: Ready</div>
+    </main>
+
+    <!-- ═══ WORKSPACE PANEL ═══════════════════════════════════════════════ -->
+    <aside class="workspace-panel hidden" id="workspacePanel">
+
+      <!-- Workspace Header -->
+      <div class="workspace-header">
+        <div class="workspace-title" id="workspaceTitle">Workspace</div>
+        <button class="workspace-close" id="workspaceClose" title="Close">✕</button>
+      </div>
+
+      <!-- ── SECTION: Receive Stock ──────────────────────────────────── -->
+      <div class="workspace-section" id="ws-receive">
+        <div class="ws-section-label">📥 Stock Receiving Form</div>
+
+        <div class="section-title">Header Information</div>
+        <div class="form-grid">
+          <div>
+            <label>Customer</label>
+            <input type="text" id="customer" placeholder="ABC Trading Co." />
+          </div>
+          <div>
+            <label>Warehouse</label>
+            <input type="text" id="warehouse" placeholder="WH1" />
+          </div>
+          <div>
+            <label>Receiving Date</label>
+            <input type="date" id="receiving_date" />
+          </div>
+          <div>
+            <label>Reference No</label>
+            <input type="text" id="reference_no" placeholder="PO-12345" />
+          </div>
+        </div>
+
+        <div class="section-title">Line Items</div>
+        <div class="line-items">
+          <div class="line-table-wrapper">
+            <table class="line-table">
+              <thead>
+                <tr>
+                  <th>Item Code</th>
+                  <th>Location</th>
+                  <th>Batch No</th>
+                  <th>MFG Date</th>
+                  <th>Expiry Date</th>
+                  <th>Shelf Expiry</th>
+                  <th>Qty</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="lineItemsBody"></tbody>
+            </table>
+          </div>
+          <button id="addLineBtn" class="btn ghost add-row">+ Add Item</button>
+        </div>
+
+        <div class="modal-actions">
+          <button id="closeModal" class="btn ghost">Cancel</button>
+          <button id="confirmBtn" class="btn primary">✓ Confirm Receive</button>
+        </div>
+      </div>
+
+      <!-- ── SECTION: Inventory ──────────────────────────────────────── -->
+      <div class="workspace-section" id="ws-inventory">
+        <div class="ws-section-label">📦 Inventory Report</div>
+
+        <div class="inventory-filters">
+          <div class="filter-group">
+            <input type="text" id="inv_q" placeholder="Search keyword (POS-123, customer, item...)" />
+            <input type="text" id="inv_customer" placeholder="Customer" />
+            <input type="text" id="inv_reference" placeholder="Reference No" />
+            <input type="date" id="inv_date_from" />
+            <input type="date" id="inv_date_to" />
+            <div class="btn-row">
+              <button id="invSearchBtn" class="btn primary small">Search</button>
+              <button id="invClearBtn" class="btn ghost small">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="inventory-table-wrapper">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Ref No</th>
+                <th>WH</th>
+                <th>Item</th>
+                <th>Location</th>
+                <th>Batch</th>
+                <th>MFG</th>
+                <th>Expiry</th>
+                <th>Shelf Exp</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── SECTION: Reports ────────────────────────────────────────── -->
+      <div class="workspace-section" id="ws-report">
+        <div class="ws-section-label">📊 Reports</div>
+        <div class="report-placeholder">
+          <div class="report-icon">📊</div>
+          <p>Reports feature — filtered inventory data and summaries will appear here.</p>
+          <button class="btn primary" id="loadReportBtn">Load Full Report</button>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+
+</html>
