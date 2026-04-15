@@ -1,0 +1,33 @@
+# Warehouse Copilot - Backend Requirements
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+
+# Database
+sqlalchemy>=2.0.0
+pymysql>=1.1.0
+
+# Data Validation
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+
+# AI / LLM
+google-genai>=0.5.0
+
+# Semantic Intent Engine (local, ONNX-based — no PyTorch/GPU needed)
+fastembed>=0.3.0             # ONNX Runtime embedding (wraps all-MiniLM-L6-v2)
+scikit-learn>=1.4.0          # cosine_similarity
+spacy>=3.7.0                 # NER + POS for slot extraction
+sentence-transformers==2.7.0 # kept for reference compat; fastembed is preferred
+# After first install run: python -m spacy download en_core_web_sm
+
+# Speech Recognition
+faster-whisper>=1.0.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# File Uploads (multipart support for FastAPI)
+python-multipart>=0.0.9
